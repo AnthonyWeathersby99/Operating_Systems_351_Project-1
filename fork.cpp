@@ -1,94 +1,51 @@
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/wait.h>
-
+#include <iostream>
+#include <fstream>
+#include <sstream> // Include this to use std::istringstream
+#include <string>
+#include <vector>
 
 int main()
 {
-	// The variable to store the process id
-	pid_t pid;
+  std::ifstream infile("input.txt");
+  std::string line;
+  int fileIndex = 1;
 
-	// Create a child
-	pid = fork();
-	
-	// Stores information about events in the child (e.g., child termination/exit status)
-	int childEventInfo;
-	
-	// The return value of execlp
-	int execlpRetVal;
-	
-	// The return value of wait
-	int waitReturn; 
+  while (getline(infile, line))
+  {
+    std::string latitude, longitude;
+    std::istringstream iss(line); // This will work after including <sstream>
+    if (!(iss >> latitude >> longitude))
+    {
+      std::cerr << "Error parsing line: " << line << std::endl;
+      continue; // Skip to the next line if parsing fails
+    }
 
-	// Sanity checks -- if fork has failed, then we are done
-	if(pid < 0)
-	{
-		perror("fork");
-		exit(1);
-	}
-	
-	if(pid == 0) //  This the child
-	{
-		// Let's print the process id of the child and the parent
-		// gepid() returns the process id of the current process
-		// getppid() returns the process id of the parent
-		fprintf(stderr, "Child: I am a child. My process id is %d\n", getpid());
-		fprintf(stderr, "Child: The process id of my parent is %d\n", getppid());
-		
-		// Replace the child's code with the code of the program
-		// located at "/usr/bin/ls".  ls will be passed the following
-		// arguments: 
-		// argv[0] -- "ls"
-		// argv[1] -- "-l"
-		// The NULL argument is necessary
-		// On success, there is no return value -- the entire program
-		// replaced with the new program and the new program starts 
-		// executing starting with the first instruction
-		// On faliure, returns -1 and the current program continues 
-		execlpRetVal = execlp("/usr/bin/ls", "ls", "-l", NULL);
+    pid_t pid = fork();
 
-		// This code is unreachable unless execlp has failed 
-		if(execlpRetVal < 0)
-		{
-			perror("execlp");
-			exit(1);
-		}
-	}
-	
-	else // This is the parent
-	{
-		// Wait for the child to finish
-		// waitReturn will store the process
-		// id of the recently terminated child
-		// childExitStatus will store information
-		// about child termination (as a bitmap). 
-		// We need to use a few macros to extract 
-		// the actual exit code
-		waitReturn = wait(&childEventInfo);
+    if (pid == 0)
+    { // This is the child process
+      std::string filename = "file" + std::to_string(fileIndex++) + ".json";
+      std::string command = "curl -o " + filename + " 'https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&current_weather=True'";
+      execlp("/bin/sh", "sh", "-c", command.c_str(), nullptr);
+      exit(1); // Exit child if execlp fails
+    }
+    else if (pid > 0)
+    { // This is the parent process
+      int status;
+      wait(&status); // Wait for child to finish
+      if (status != 0)
+      {
+        std::cerr << "Error executing curl command\n";
+      }
+    }
+    else
+    {
+      std::cerr << "Failed to fork\n";
+      return 1;
+    }
+  }
 
-		// Sanity checks -- wait failed?
-		if(waitReturn < 0)
-		{
-			perror("wait");
-			exit(1);
-		}
-		
-		// If the reason why wait has stopped waiting
-		// was child termination (could be other reasns
-		// in practice!), let's print the child's exit status
-		// WIFEXITED macro checks the bits in the childEventInfo
-		// to see if the reason why the wait has stopped waiting
-		// was child termination
-		if(WIFEXITED(childEventInfo))
-		{
-			// Print the terminated child's process id
-			fprintf(stderr, "Parent: The child with pid=%d has terminated\n", waitReturn);
-			
-			// WEXITSTATUS extracts the child's exit code from the childEventInfo
-			fprintf(stderr, "Paent: The child's exit code is %d\n", WEXITSTATUS(childEventInfo));	
-		}
-	}
-	
-	
+  return 0;
 }
