@@ -35,7 +35,7 @@ int main()
       if (pid < 0)
       {
         perror("Error in fork()");
-        exit(EXIT_FAILURE); // Exit if fork fails
+        exit(-1); // Exit if fork fails
       }
 
       /* If I am child, I will do this: */
@@ -50,7 +50,7 @@ int main()
 
         // Error check your execlp() system call
         perror("Error in execlp()");
-        exit(EXIT_FAILURE); // Exit if execlp fails
+        exit(-1); // Exit if execlp fails
       }
       /* If I am a parent, I will do the following */
       else
