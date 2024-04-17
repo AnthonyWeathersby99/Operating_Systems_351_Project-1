@@ -4,6 +4,12 @@ Name and Email:
 
 Description of Contribution:
 -Anthony Weathersby created all the code
+Files to look at:
+Part 1:
+shellskel.cpp
+Part 2:
+serial.cpp
+parallel.cpp
 
 -I am familiar with all the functionality of the assignment
 
@@ -15,8 +21,8 @@ For Part 1:
 In terminal, input "./shell"
 
 For Part 2:
-In terminal, input "time ./serial input.txt" for the serial fetcher
-In terminal, input "time ./parallel input.txt" for the parallel fetcher
+In terminal, input  "time "./serial input.txt"     for the serial fetcher,  this will output 5 json files called serialfile#.json
+In terminal, input  "time "./parallel input.txt"   for the parallel fetcher this will output 5 json files called parallelfile#.json
 
 Execution Times for Both Fetchers:
 
@@ -32,10 +38,18 @@ sys     0m0.012s
 
 1. In the output of time, what is the difference between real, user, and sys times?
 
+   Real time is the actual time it took for the program to run. Can be counted by a person.
+   User time is the time spent by the CPU outside the kernel, which is the time spent running the code.
+   Sys  time is the time spent by the CPU inside the kernel, which it spends executing system calls or operations.
+
 2. Which is longer: user time or sys time? Use your knowledge to explain why.
+
+   User time is longer because
 
 3. When fetching all of the locations in the file, which fetcher finishes faster? Why do you
 think that is?
+
+
 
 4. Suppose one of the fetcher children crashes. Will this affect other children? Explain.
 What is your conclusion regarding the benefits or disadvantages of isolating each fetch
